@@ -3,7 +3,7 @@ Python Library to interface with [WLED](https://github.com/Aircoookie/WLED) JSON
 
 # installation
 
-Installation: `pip install wledpy`
+Installation: `pip install wledpy-pctechjon`
 
 # usage
 
