@@ -17,6 +17,15 @@ class Wled():
     def __init__(self, host):
         self.host = host
 
+        self.effects = self.get_effects()
+
+        self._name = None
+        self._state = None
+        self._brightness = None
+        self._transition = None
+        self._effect = None
+        self._color = None
+
     def get_all(self):
         """Get all JSON objects for WLED controller"""
         request = get(f"http://{self.host}/json")
@@ -47,7 +56,7 @@ class Wled():
         """
         Send a state update command to change the state of the WLED controller
 
-        Paremeters:
+        Parameters:
             state: object to be converted to JSON during POST to WLED controller
 
         Returns:
@@ -56,20 +65,61 @@ class Wled():
         request = post(f"http://{self.host}/json/state", data=json.dumps(state))
         return request
 
+    def is_valid(self):
+        """Return True if host is a valid WLED controller"""
+        try:
+            data = self.get_all()
+            if data["info"]["brand"] == "WLED":
+                return True
+            else:
+                return False
+        except:
+            return False
+
+
+    def update(self):
+        """
+        Update parameters for the WLED controller
+        """
+
+        data = self.get_all()
+        self._state = data["state"]["on"]
+        self._brightness = data["state"]["bri"]
+        self._transition = data["state"]["transition"]
+        self._effects = data["effects"]
+        self._name = data["info"]["name"]
+        self._color = data["state"]["seg"][0]["col"][0]
+        self._effect = self._effects[data["state"]["seg"][0]["fx"]]
+
+
     def turn_off(self):
         """Send a payload to the WLED controller to turn the lights off"""
         state = {"on": False}
-        return self.set_state(state)
+        response = self.set_state(state)
+        response_json = json.loads(response.text)
+        self._state = response_json["state"]["on"]
+
+        if self._state == False:
+            return True
+        else:
+            return False
 
     def turn_on(self):
         """Send a payload to the WLED controller to turn the lights on"""
         state = {"on": True}
-        return self.set_state(state)
+        response = self.set_state(state)
+        response_json = json.loads(response.text)
+        self._state = response_json["state"]["on"]
+
+        if self._state == True:
+            return True
+        else:
+            return False
 
     def is_on(self):
         """Return True if WLED strip is on. False if WLED strip is off."""
 
-        return self.get_state()["on"]
+        return self._state
 
     def set_brightness(self, brightness):
         """
@@ -186,3 +236,51 @@ class Wled():
         return self.get_state()["seg"][0]["col"][0]
 
 
+    @property
+    def brightness(self):
+        return self._brightness
+    
+    @brightness.setter
+    def brightness(self, bri):
+        self.set_brightness(bri)
+        self._brightness = bri
+
+    @property
+    def transition(self):
+        return self._transition
+
+    @transition.setter
+    def transition(self, tran):
+        self.set_transition(tran)
+        self._transition = tran
+
+    @property
+    def effects(self):
+        return self._effects
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, new_color):
+        self.set_color(new_color)
+        self._color = new_color
+
+    @property
+    def effect(self):
+        return self._effect
+    
+    @effect.setter
+    def effect(self, new_effect):
+        self.set_effect_by_name(new_effect)
+        self._effect = new_effect
+    
+    @property
+    def state(self):
+        return self._state
+    
