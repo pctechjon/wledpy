@@ -45,6 +45,9 @@ setup(
     packages=['wledpy'],
     include_package_data=True,
     platforms='any',
+    install_requires=[
+        'requests',
+    ],
     classifiers = [
         'Programming Language :: Python',
         'Natural Language :: English',
